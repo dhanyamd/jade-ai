@@ -13,7 +13,6 @@ from client.response import (
 )
 from config.config import Config
 
-from .config import Config
 
 class LLMClient:
     def __init__(self, config: Config) -> None:
