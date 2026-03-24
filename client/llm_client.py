@@ -65,7 +65,7 @@ class LLMClient:
         for attempt in range(self._max_retires + 1): 
             try: 
                 if stream: 
-                    async for event in self._stream_response(client, kwargs):
+                    async for event in self._stream_responses(client, kwargs):
                      yield event 
                 else:
                     event = await self._non_stream_response(client, kwargs)
