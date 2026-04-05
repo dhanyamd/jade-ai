@@ -6,15 +6,7 @@ from enum import Enum
 from pathlib import Path
 
 from pydantic import BaseModel, Field
-
-from unified_agent.tools.base import (
-    FileDiff,
-    ToolConfirmation,
-    ToolInvocation,
-    ToolKind,
-    ToolResult,
-    Tool,
-)
+from tools.base import Tool, ToolConfirmation, ToolInvocation, ToolKind, ToolResult
 from utils.paths import resolve_path, ensure_parent_directory
 
 class PatchAction(Enum): 

@@ -4,9 +4,9 @@ from typing import Any
 import uuid
 from client.llm_client import LLMClient
 from config.config import Config
+from context.loop_detector import LoopDetector
 from config.loader import get_data_dir
 from context.compaction import ChatCompactor
-from context.loop_detector import LoopDetector
 from context.manager import ContextManager
 from hooks.hook_system import HookSystem
 from safety.approval import ApprovalManager

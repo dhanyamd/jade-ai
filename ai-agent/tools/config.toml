@@ -15,8 +15,8 @@ command='python3 ./scripts/test_tool.py'
 
 [mcp_servers.filesystem]
 command = "npx"
-args = ["-y", "@modelcontextprotocol/server-filesystem", "/Users/rivaanranawat/Desktop/ai-agent", "/tmp"]
+args = ["-y", "@modelcontextprotocol/server-filesystem", " /Users/dhanyamd/Projects/jade/ai-agent", "/tmp"]
 
 [mcp_servers.filesystem2]
 command = "npx"
-args = ["-y", "@modelcontextprotocol/server-filesystem222222222222", "/Users/rivaanranawat/Desktop/ai-agent", "/tmp"]
+args = ["-y", "@modelcontextprotocol/server-filesystem222222222222", " /Users/dhanyamd/Projects/jade/ai-agent", "/tmp"]

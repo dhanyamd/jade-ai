@@ -13,73 +13,83 @@ from ui.tui import TUI, get_console
 
 console = get_console()
 
-class CLI: 
-    def __init__(self, config: Config): 
-        self.agent: Agent | None = None 
-        self.config = config 
-        self.tui = TUI(config=config)
 
-    async def run_single(self, message: str) -> str | None: 
-        async with Agent(self.config) as agent: 
-            self.agent = agent 
-            return await self._process_message(message) 
-    
-    async def run_interactive(self)-> str | None: 
+class CLI:
+    def __init__(self, config: Config):
+        self.agent: Agent | None = None
+        self.config = config
+        self.tui = TUI(config, console)
+
+    async def run_single(self, message: str) -> str | None:
+        async with Agent(self.config) as agent:
+            self.agent = agent
+            return await self._process_message(message)
+
+    async def run_interactive(self) -> str | None:
         self.tui.print_welcome(
-                "AI Agent",
+            "AI Agent",
             lines=[
                 f"model: {self.config.model_name}",
                 f"cwd: {self.config.cwd}",
                 "commands: /help /config /approval /model /exit",
             ],
         )
+
         async with Agent(
             self.config,
             confirmation_callback=self.tui.handle_confirmation,
-        ) as agent: 
-            self.agent = agent 
-            while True: 
-                try: 
-                    user_input = console.input("\n[user]>[/user]").strip()
-                    if not user_input: 
-                        continue 
-                    if user_input.startswith("/"): 
-                        should_continue = await self._handle_command(user_input) 
-                        if not should_continue: 
+        ) as agent:
+            self.agent = agent
+
+            while True:
+                try:
+                    user_input = console.input("\n[user]>[/user] ").strip()
+                    if not user_input:
+                        continue
+
+                    if user_input.startswith("/"):
+                        should_continue = await self._handle_command(user_input)
+                        if not should_continue:
                             break
-                        continue 
+                        continue
+
                     await self._process_message(user_input)
-                except KeyboardInterrupt: 
+                except KeyboardInterrupt:
                     console.print("\n[dim]Use /exit to quit[/dim]")
-                except EOFError: 
-                    break 
+                except EOFError:
+                    break
+
         console.print("\n[dim]Goodbye![/dim]")
-    
-    def _get_tool_kind(self, tool_name: str)-> str| None: 
+
+    def _get_tool_kind(self, tool_name: str) -> str | None:
         tool_kind = None
         tool = self.agent.session.tool_registry.get(tool_name)
-        if not tool: 
-            tool_kind = None 
-        tool_kind = tool.kind.value 
-        return tool_kind 
-        
-    async def _process_message(self, message: str)->str| None: 
-        if not self.agent: 
-            return None 
-        assistant_streaming = False 
-        final_response: str | None = None 
-        async for event in self.agent.run(message): 
-            if event.type == AgentEventType.TEXT_DELTA: 
-                content = event.data.get("content", "") 
-                if not assistant_streaming: 
-                    self.tui.begin_assistant() 
+        if not tool:
+            tool_kind = None
+
+        tool_kind = tool.kind.value
+
+        return tool_kind
+
+    async def _process_message(self, message: str) -> str | None:
+        if not self.agent:
+            return None
+
+        assistant_streaming = False
+        final_response: str | None = None
+
+        async for event in self.agent.run(message):
+            if event.type == AgentEventType.TEXT_DELTA:
+                content = event.data.get("content", "")
+                if not assistant_streaming:
+                    self.tui.begin_assistant()
                     assistant_streaming = True
                 self.tui.stream_assistant_delta(content)
-            elif event.type == AgentEventType.TEXT_COMPLETE: 
-                final_response = event.data.get("content") 
-                if assistant_streaming: 
+            elif event.type == AgentEventType.TEXT_COMPLETE:
+                final_response = event.data.get("content")
+                if assistant_streaming:
                     self.tui.end_assistant()
-                    assistant_streaming=False 
+                    assistant_streaming = False
             elif event.type == AgentEventType.AGENT_ERROR:
                 error = event.data.get("error", "Unknown error")
                 console.print(f"\n[error]Error: {error}[/error]")
@@ -110,10 +120,10 @@ class CLI:
 
         return final_response
 
-    async def handle_confirmation(self, command: str) -> bool: 
-        cmd = command.lower().strip() 
+    async def _handle_command(self, command: str) -> bool:
+        cmd = command.lower().strip()
         parts = cmd.split(maxsplit=1)
-        cmd_name = parts[0] 
+        cmd_name = parts[0]
         cmd_args = parts[1] if len(parts) > 1 else ""
         if cmd_name == "/exit" or cmd_name == "/quit":
             return False
@@ -137,18 +147,17 @@ class CLI:
                 console.print(f"[success]Model changed to: {cmd_args} [/success]")
             else:
                 console.print(f"Current model: {self.config.model_name}")
-        elif cmd_name == "/approval": 
-            if cmd_args: 
-                try: 
+        elif cmd_name == "/approval":
+            if cmd_args:
+                try:
                     approval = ApprovalPolicy(cmd_args)
                     self.config.approval = approval
                     console.print(
-                        f"[success]Approval policy changed to : {cmd_args} [/success]"
+                        f"[success]Approval policy changed to: {cmd_args} [/success]"
                     )
-                except: 
+                except:
                     console.print(
                         f"[error]Incorrect approval policy: {cmd_args} [/error]"
-
                     )
                     console.print(
                         f"Valid options: {', '.join(p for p in ApprovalPolicy)}"

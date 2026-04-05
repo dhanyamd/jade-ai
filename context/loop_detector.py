@@ -7,14 +7,15 @@ class LoopDetector:
         self.max_exact_repeats = 3
         self.max_cycle_length = 3
         self._history: deque[str] = deque(maxlen=20)
-    
-    def record_action(self, action_type: str, **details: Any): 
-        output = [action_type] 
 
-        if action_type == "tool_call": 
-            output.append(details.get("tool_name", "")) 
+    def record_action(self, action_type: str, **details: Any):
+        output = [action_type]
+
+        if action_type == "tool_call":
+            output.append(details.get("tool_name", ""))
             args = details.get("args", {})
-        if isinstance(args, dict):
+
+            if isinstance(args, dict):
                 for k in sorted(args.keys()):
                     output.append(f"{k}={str(args[k])}")
         elif action_type == "response":
@@ -30,7 +31,7 @@ class LoopDetector:
         if len(self._history) >= self.max_exact_repeats:
             recent = list(self._history)[-self.max_exact_repeats :]
             if len(set(recent)) == 1:
-                return f"Same action repeated {self.max_exact_repeats} times"
+                return f"Same action repeated {self.max_exact_repeats} tiems"
 
         if len(self._history) >= self.max_cycle_length * 2:
             history = list(self._history)
