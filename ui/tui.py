@@ -79,8 +79,11 @@ class TUI:
             self.console.print()
         self._assistant_stream_open = False
 
-    def stream_assistant_delta(self, content: str) -> None:
-        self.console.print(content, end="", markup=False)
+    def stream_assistant_delta(self, content: str | None = None, reasoning: str | None = None) -> None:
+        if content:
+            self.console.print(content, end="", markup=False)
+        if reasoning:
+            self.console.print(Text(reasoning, style="dim"), end="")
 
     def _ordered_args(self, tool_name: str, args: dict[str, Any]) -> list[tuple]:
         _PREFERRED_ORDER = {
@@ -120,8 +123,7 @@ class TUI:
                     line_count = len(value.splitlines()) or 0
                     byte_count = len(value.encode("utf-8", errors="replace"))
                     value = f"<{line_count} lines • {byte_count} bytes>"
-
-            if isinstance(value, bool):
+            else:
                 value = str(value)
 
             table.add_row(key, value)

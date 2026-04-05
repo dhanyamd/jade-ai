@@ -80,11 +80,12 @@ class CLI:
 
         async for event in self.agent.run(message):
             if event.type == AgentEventType.TEXT_DELTA:
-                content = event.data.get("content", "")
-                if not assistant_streaming:
+                content = event.data.get("content")
+                reasoning = event.data.get("reasoning")
+                if not assistant_streaming and (content or reasoning):
                     self.tui.begin_assistant()
                     assistant_streaming = True
-                self.tui.stream_assistant_delta(content)
+                self.tui.stream_assistant_delta(content=content, reasoning=reasoning)
             elif event.type == AgentEventType.TEXT_COMPLETE:
                 final_response = event.data.get("content")
                 if assistant_streaming:
@@ -261,7 +262,7 @@ class CLI:
             console.print(f"[success]Checkpoint created: {checkpoint_id}[/success]")
         elif cmd_name == "/restore":
             if not cmd_args:
-                console.print(f"[error]Usage: /restire <checkpoint_id> [/error]")
+                console.print(f"[error]Usage: /restore <checkpoint_id> [/error]")
             else:
                 persistence_manager = PersistenceManager()
                 snapshot = persistence_manager.load_checkpoint(cmd_args)
@@ -299,13 +300,15 @@ class CLI:
 
                     self.agent.session = session
                     console.print(
-                        f"[success]Resumed session: {session.session_id}, checkpoint: {checkpoint_id}[/success]"
+                        f"[success]Resumed session: {session.session_id}, checkpoint: {cmd_args}[/success]"
                     )
         else:
             console.print(f"[error]Unknown command: {cmd_name}[/error]")
 
         return True
 
+
+from dotenv import load_dotenv
 
 @click.command()
 @click.argument("prompt", required=False)
@@ -315,12 +318,30 @@ class CLI:
     type=click.Path(exists=True, file_okay=False, path_type=Path),
     help="Current working directory",
 )
+@click.option(
+    "--model",
+    "-m",
+    help="Model name to use",
+)
+@click.option(
+    "--temp",
+    "-t",
+    type=float,
+    help="Temperature for sampling",
+)
 def main(
     prompt: str | None,
     cwd: Path | None,
+    model: str | None = None,
+    temp: float | None = None,
 ):
+    load_dotenv()
     try:
         config = load_config(cwd=cwd)
+        if model:
+            config.model_name = model
+        if temp is not None:
+            config.temperature = temp
     except Exception as e:
         console.print(f"[error]Configuration Error: {e}[/error]")
 

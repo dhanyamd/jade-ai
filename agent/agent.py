@@ -1,5 +1,4 @@
 from __future__ import annotations
-from pickle import NONE
 from typing import AsyncGenerator, Awaitable, Callable
 from agent.events import AgentEvent, AgentEventType
 from agent.session import Session
@@ -37,6 +36,7 @@ class Agent:
         for turn_num in range(max_turns):
             self.session.increment_turn() 
             response_text = ""
+            reasoning_text = ""
 
             if self.session.context_manager.needs_compression(): 
                 summary, usage = await self.session.chat_compactor.compress(
@@ -56,9 +56,15 @@ class Agent:
             ): 
                 if event.type == StreamEventType.TEXT_DELTA:
                     if event.text_delta:
-                        content = event.text_delta.content
-                        response_text += content
-                        yield AgentEvent.text_delta(content)
+                        if event.text_delta.content:
+                            content = event.text_delta.content
+                            response_text += content
+                            yield AgentEvent.text_delta(content=content)
+                        
+                        if event.text_delta.reasoning_content:
+                            reasoning = event.text_delta.reasoning_content
+                            reasoning_text += reasoning
+                            yield AgentEvent.text_delta(reasoning=reasoning) 
                 elif event.type == StreamEventType.TOOL_CALL_COMPLETE:
                     if event.tool_call:
                         tool_calls.append(event.tool_call)
@@ -70,8 +76,8 @@ class Agent:
                     usage = event.usage
 
             self.session.context_manager.add_assistant_message(
-                response_text or None,
-                (
+                content=response_text or "",
+                tool_calls=(
                     [
                         {
                             "id": tc.call_id,
@@ -86,6 +92,7 @@ class Agent:
                     if tool_calls
                     else None
                 ),
+                reasoning_details=reasoning_text or None,
             )
             if response_text:
                 yield AgentEvent.text_complete(response_text)

@@ -1,9 +1,7 @@
-from _typeshed.importlib import PathEntryFinderProtocol
 from dataclasses import dataclass, field
 from enum import Enum
 import os
 from pathlib import Path
-from sys import deactivate_stack_trampoline
 from typing import Any
 from config.config import MCPServerConfig
 from fastmcp import Client

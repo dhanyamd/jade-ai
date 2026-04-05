@@ -14,6 +14,7 @@ class MessageItem:
     content: str 
     tool_call_id: str | None = None 
     tool_calls: list[dict[str, Any]] = field(default_factory=list )
+    reasoning_details: str | None = None
     token_count : int | None = None 
     pruned_at: datetime | None = None 
 
@@ -26,8 +27,10 @@ class MessageItem:
         if self.tool_calls:
             result["tool_calls"] = self.tool_calls
 
-        if self.content:
-            result["content"] = self.content
+        result["content"] = self.content or ""
+        
+        if self.reasoning_details: 
+            result["reasoning_details"] = self.reasoning_details
 
         return result
 class ContextManager:
@@ -65,8 +68,9 @@ class ContextManager:
 
     def add_assistant_message(
         self,
-        content: str,
-        tool_calls: list[dict[str, any]] | None = None,
+        content: str | None = None,
+        tool_calls: list[dict[str, Any]] | None = None,
+        reasoning_details: str | None = None,
     ) -> None:
         item = MessageItem(
             role="assistant",
@@ -76,6 +80,7 @@ class ContextManager:
                 self._model_name,
             ),
             tool_calls=tool_calls or [],
+            reasoning_details=reasoning_details,
         )
 
         self._messages.append(item)

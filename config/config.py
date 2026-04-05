@@ -10,6 +10,7 @@ class ModelConfig(BaseModel):
     name: str = "mistralai/devstral-2512:free"
     temperature: float = Field(default=1, ge=0.0, le=2.0)
     context_window: int = 256_000
+    reasoning_enabled: bool = True
 
 
 class ShellEnvironmentPolicy(BaseModel):
@@ -125,9 +126,17 @@ class Config(BaseModel):
     def temperature(self) -> float:
         return self.model.temperature
 
-    @model_name.setter
-    def temperature(self, value: str) -> None:
+    @temperature.setter
+    def temperature(self, value: float) -> None:
         self.model.temperature = value
+
+    @property
+    def reasoning_enabled(self) -> bool:
+        return self.model.reasoning_enabled
+
+    @reasoning_enabled.setter
+    def reasoning_enabled(self, value: bool) -> None:
+        self.model.reasoning_enabled = value
 
     def validate(self) -> list[str]:
         errors: list[str] = []

@@ -60,10 +60,10 @@ class AgentEvent:
         )
 
     @classmethod
-    def text_delta(cls, content: str) -> AgentEvent:
+    def text_delta(cls, content: str | None = None, reasoning: str | None = None) -> AgentEvent:
         return cls(
             type=AgentEventType.TEXT_DELTA,
-            data={"content": content},
+            data={"content": content, "reasoning": reasoning},
         )
 
     @classmethod

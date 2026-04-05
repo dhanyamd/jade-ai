@@ -7,10 +7,11 @@ import json
 
 @dataclass
 class TextDelta:
-    content: str
+    content: str | None = None
+    reasoning_content: str | None = None
 
     def __str__(self):
-        return self.content
+        return self.content or self.reasoning_content or ""
 
 
 class StreamEventType(str, Enum):
@@ -57,6 +58,7 @@ class ToolCall:
 class StreamEvent:
     type: StreamEventType
     text_delta: TextDelta | None = None
+    reasoning_delta: str | None = None
     error: str | None = None
     finish_reason: str | None = None
     tool_call_delta: ToolCallDelta | None = None

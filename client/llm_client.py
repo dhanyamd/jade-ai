@@ -62,7 +62,11 @@ class LLMClient:
         if tools: 
             kwargs["tools"] = self._build_tools(tools)
             kwargs["tool_choice"] = "auto" 
-        for attempt in range(self._max_retires + 1): 
+        
+        if self.config.reasoning_enabled:
+            kwargs["extra_body"] = {"reasoning": {"enabled": True}}
+
+        for attempt in range(self.max_retries + 1): 
             try: 
                 if stream: 
                     async for event in self._stream_responses(client, kwargs):
@@ -72,7 +76,7 @@ class LLMClient:
                     yield event
                 return 
             except RateLimitError as e: 
-                if attempt < self._max_retries:
+                if attempt < self.max_retries:
                     wait_time = 2**attempt
                     await asyncio.sleep(wait_time)
                 else:
@@ -82,7 +86,7 @@ class LLMClient:
                     )
                     return
             except APIConnectionError as e:
-                if attempt < self._max_retries:
+                if attempt < self.max_retries:
                     wait_time = 2**attempt
                     await asyncio.sleep(wait_time)
                 else:
@@ -129,7 +133,13 @@ class LLMClient:
             if delta.content:
                 yield StreamEvent(
                     type=StreamEventType.TEXT_DELTA,
-                    text_delta=TextDelta(delta.content),
+                    text_delta=TextDelta(content=delta.content),
+                )
+            
+            if hasattr(delta, "reasoning_content") and delta.reasoning_content:
+                 yield StreamEvent(
+                    type=StreamEventType.TEXT_DELTA,
+                    text_delta=TextDelta(reasoning_content=delta.reasoning_content),
                 )
 
             if delta.tool_calls:
@@ -143,30 +153,27 @@ class LLMClient:
                             "arguments": "",
                         }
 
-                        if tool_call_delta.function:
-                            if tool_call_delta.function.name:
-                                tool_calls[idx]["name"] = tool_call_delta.function.name
-                                yield StreamEvent(
-                                    type=StreamEventType.TOOL_CALL_START,
-                                    tool_call_delta=ToolCallDelta(
-                                        call_id=tool_calls[idx]["id"],
-                                        name=tool_call_delta.function.name,
-                                    ),
-                                )
-
-                        if tool_call_delta.function.arguments:
-                            tool_calls[idx][
-                                "arguments"
-                            ] += tool_call_delta.function.arguments
-
+                        if tool_call_delta.function and tool_call_delta.function.name:
+                            tool_calls[idx]["name"] = tool_call_delta.function.name
                             yield StreamEvent(
-                                type=StreamEventType.TOOL_CALL_DELTA,
+                                type=StreamEventType.TOOL_CALL_START,
                                 tool_call_delta=ToolCallDelta(
                                     call_id=tool_calls[idx]["id"],
                                     name=tool_call_delta.function.name,
-                                    arguments_delta=tool_call_delta.function.arguments,
                                 ),
                             )
+
+                    if tool_call_delta.function and tool_call_delta.function.arguments:
+                        tool_calls[idx]["arguments"] += tool_call_delta.function.arguments
+
+                        yield StreamEvent(
+                            type=StreamEventType.TOOL_CALL_DELTA,
+                            tool_call_delta=ToolCallDelta(
+                                call_id=tool_calls[idx]["id"],
+                                name=tool_calls[idx]["name"],
+                                arguments_delta=tool_call_delta.function.arguments,
+                            ),
+                        )
 
         for idx, tc in tool_calls.items():
             yield StreamEvent(
@@ -202,10 +209,22 @@ class LLMClient:
                 tool_calls.append(
                     ToolCall(
                         call_id=tc.id,
-                        name=function.name,
+                        name=tc.function.name,
                         arguments=parse_tool_call_arguments(tc.function.arguments)
                     )
                 )
+        
+        # Handle reasoning for non-streaming
+        reasoning_content = None 
+        if hasattr(message, "reasoning_content"): 
+            reasoning_content = message.reasoning_content 
+        elif hasattr(message, "reasoning_details"): 
+            reasoning_content = str(message.reasoning_details)
+
+        if text_delta is None and reasoning_content: 
+             text_delta = TextDelta(reasoning_content=reasoning_content)
+        elif text_delta and reasoning_content: 
+             text_delta.reasoning_content = reasoning_content
         usage = None
         if response.usage:
             usage = TokenUsage(
