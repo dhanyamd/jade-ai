@@ -62,14 +62,13 @@ class CLI:
         console.print("\n[dim]Goodbye![/dim]")
 
     def _get_tool_kind(self, tool_name: str) -> str | None:
-        tool_kind = None
+        if not self.agent or not self.agent.session:
+            return None
         tool = self.agent.session.tool_registry.get(tool_name)
         if not tool:
-            tool_kind = None
+            return None
 
-        tool_kind = tool.kind.value
-
-        return tool_kind
+        return tool.kind.value
 
     async def _process_message(self, message: str) -> str | None:
         if not self.agent:
@@ -128,9 +127,9 @@ class CLI:
         cmd_args = parts[1] if len(parts) > 1 else ""
         if cmd_name == "/exit" or cmd_name == "/quit":
             return False
-        elif command == "/help":
+        elif cmd_name == "/help":
             self.tui.show_help()
-        elif command == "/clear":
+        elif cmd_name == "/clear":
             self.agent.session.context_manager.clear()
             self.agent.session.loop_detector.clear()
             console.print("[success]Conversation cleared [/success]")
@@ -156,7 +155,7 @@ class CLI:
                     console.print(
                         f"[success]Approval policy changed to: {cmd_args} [/success]"
                     )
-                except:
+                except ValueError:
                     console.print(
                         f"[error]Incorrect approval policy: {cmd_args} [/error]"
                     )
@@ -364,4 +363,5 @@ def main(
         asyncio.run(cli.run_interactive())
 
 
-main()
+if __name__ == "__main__":
+    main()
