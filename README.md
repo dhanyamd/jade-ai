@@ -7,7 +7,7 @@ Jade is a terminal-based AI coding agent. It interacts with LLMs through an Open
 ```mermaid
 graph TB
     %% ── External ────────────────────────────────────────────────────────────
-    subgraph External
+    subgraph sg_external [External]
         LLM[(OpenAI-compatible<br/>LLM API)]
         MCP[(MCP Servers)]
         Shell[(System Shell)]
@@ -15,34 +15,34 @@ graph TB
     end
 
     %% ── Entry ───────────────────────────────────────────────────────────────
-    subgraph "Entry Point"
+    subgraph sg_entry ["Entry Point"]
         Main["main.py  (Click CLI)"]
         CLI["CLI class — single / interactive mode"]
     end
 
     %% ── UI ──────────────────────────────────────────────────────────────────
-    subgraph "Presentation Layer"
+    subgraph sg_presentation ["Presentation Layer"]
         TUI["TUI  (Rich-based TUI)"]
     end
 
     %% ── Core Agent ──────────────────────────────────────────────────────────
-    subgraph "Core Agent Layer"
+    subgraph sg_core ["Core Agent Layer"]
         Agent["Agent — agentic loop"]
         Session["Session — central hub"]
     end
 
     %% ── Subsystems ──────────────────────────────────────────────────────────
-    subgraph "Client & Communication"
+    subgraph sg_client ["Client & Communication"]
         LLMClient["LLMClient — streaming API client"]
     end
 
-    subgraph "Context & Memory"
+    subgraph sg_context ["Context & Memory"]
         CtxMgr["ContextManager — message store"]
         Compactor["ChatCompactor — summarization"]
         LoopDet["LoopDetector — loop detection"]
     end
 
-    subgraph "Tooling"
+    subgraph sg_tooling [Tooling]
         Registry["ToolRegistry — registration & dispatch"]
         MCPMgr["MCPManager — MCP server lifecycle"]
         Discovery["ToolDiscoveryManager"]
@@ -51,16 +51,16 @@ graph TB
         MCPTools["MCP Tool Adapters"]
     end
 
-    subgraph "Safety & Lifecycle"
+    subgraph sg_safety ["Safety & Lifecycle"]
         Approval["ApprovalManager — safety policies"]
         Hooks["HookSystem — lifecycle hooks"]
     end
 
-    subgraph "Persistence"
+    subgraph sg_persistence [Persistence]
         Persistence["PersistenceManager<br/>session save/load/checkpoint"]
     end
 
-    subgraph "Configuration"
+    subgraph sg_config [Configuration]
         Config["Config — Pydantic model<br/>model, tools, approval, MCP, hooks"]
         ConfigLoader["load_config<br/>TOML + env loading"]
     end
