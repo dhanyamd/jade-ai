@@ -1,6 +1,21 @@
-# Jade — AI Agent Architecture
+<div align="center">
+  <h1>💎 Jade</h1>
+  <p><strong>The Most Extensible AI Coding Agent for your Terminal</strong></p>
+</div>
 
-Jade is a terminal-based AI coding agent. It interacts with LLMs through an OpenAI-compatible API, manages a tool-use loop with safety checks, persistence, and a rich TUI.
+---
+
+**Jade** is a next-generation, terminal-first AI coding agent designed to bridge the gap between "chat" and "ship." Unlike traditional LLM chat interfaces, Jade is built for **autonomous engineering workflows**, providing a robust, safety-first environment where a reasoning-capable AI can interact directly with your file system, shell, and external services.
+
+At its core, Jade follows a sophisticated **agentic loop**—autonomously planning, executing, and verifying its work through a specialized toolset. Whether it's deep codebase investigation, automated refactoring, or real-time security auditing, Jade is designed for high-stakes terminal productivity.
+
+### ✨ Why Jade?
+
+- 🧠 **Reasoning First**: Optimized for advanced reasoning models (like Qwen3.2+), allowing the agent to stream its "thoughts" out loud before touching a single line of code.
+- 🔌 **Deep Extensibility (MCP)**: Built with native support for the **Model Context Protocol (MCP)**, allowing it to instantly connect to any MCP server for specialized tools and expanded context.
+- ⚓ **Lifecycle Hooks**: Every action is governed by a flexible **Bash Hook** system. Trigger custom scripts before or after the agent runs, or around specific tool executions (like auto-linting after file edits).
+- 🛡️ **Hardened Safety**: Built-in loop detection, automatic token compression, and custom **Safety Approval** policies (`auto`, `on-request`, `yolo`) ensure you always have the final say over mutating actions.
+- 💻 **Premium UX**: A high-fidelity Terminal UI (TUI) powered by Rich, providing real-time streaming of thoughts, interactive tool status, and automated session persistence.
 
 ## System Architecture
 
