@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field, model_validator
 
 
 class ModelConfig(BaseModel):
-    name: str = "minimax/minimax-m2.5:free"
+    name: str = "gpt-4o"
     temperature: float = Field(default=1, ge=0.0, le=2.0)
     context_window: int = 256_000
     reasoning_enabled: bool = True

@@ -65,7 +65,7 @@ class LLMClient:
         
         if self.config.reasoning_enabled:
             # Only send reasoning flag to known models that support it on OpenRouter
-            reasoning_models = ["qwen", "r1", "deepseek"]
+            reasoning_models = ["qwen", "r1", "nousresearch"]
             if any(m in self.config.model_name.lower() for m in reasoning_models):
                 kwargs["extra_body"] = {"reasoning": {"enabled": True}}
 
